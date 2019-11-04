@@ -5,11 +5,64 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Todo App</title>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        #error {
+            color: red;
+        }
+    </style>
 </head>
 <body>
-    <ul>
-        <li>Todo 1</li>
+    <div id="error" class="hidden">Somehing went wrong!</div>
+    <form id="form">
+        <input type="text" id="description" name="description">
+        <input type="submit" value="Create">
+    </form>
+    <ul id="list">
+        {% for d in data %}
+        <li>{{ d.description }}</li>
+        {% endfor  %}
     </ul>
     
+    <script>
+         form.onsubmit = (event) => {
+             event.preventDefault();
+
+             const form = document.querySelector('#form');
+             const description = document.querySelector('#description').value;
+             const list = document.querySelector('#list');
+             const error = document.querySelector('#error');
+             const liItem = document.createElement('li');
+
+             fetch('/todos/create', {
+                 method: 'POST',
+                 body: JSON.stringify({
+                     description,
+                 }),
+                 headers: {
+                     'Content-Type': 'application/json'
+                 }
+             })
+             .then((response) => response.json())
+             .then((jsonResponse) => {
+                 console.log(jsonResponse);
+                 liItem.innerHTML = jsonResponse['description'];
+                 list.appendChild(liItem);
+                 error.classList.add('hidden');
+                 
+             })
+             .catch((err) => {
+                 console.log(err)
+                 error.classList.remove('hidden');
+             })
+         }
+    </script>
 </body>
 </html>
