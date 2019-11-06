@@ -10,8 +10,28 @@
             font-family: sans-serif;
         }
 
+        ul {
+            list-style: none;
+            padding: 0;
+            width: 300px;
+        }
+
         .hidden {
             display: none;
+        }
+
+        .todo {
+            margin-bottom: 10px;
+        }
+
+        li button {
+            -webkit-appearance: none;
+            border: none;
+            outline: none;
+            float: right;
+            color: red;
+            cursor: pointer;
+            font-size: 20px;
         }
 
         #error {
@@ -27,11 +47,41 @@
     </form>
     <ul id="list">
         {% for d in data %}
-        <li>{{ d.description }}</li>
+        <li class="todo"> 
+            <input class="check-completed" data-id="{{ d.id }}" type="checkbox" {% if d.completed %} checked {% endif %}/>
+            {{ d.description }}
+            <button>&cross;</button>
+        </li>
         {% endfor  %}
     </ul>
     
     <script>
+        const checkboxes = document.querySelectorAll('.check-completed');
+        checkboxes.forEach((checkbox) => {
+            checkbox.onchange = (event) => {
+                console.log(event);
+                const newCompleted = event.target.checked;
+                const todoId = event.target.dataset['id'];
+                const error = document.querySelector('#error');
+                fetch(`/todos/${todoId}/set-completed`, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        completed: newCompleted,
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(() => {
+                    error.classList.add('hidden');
+                })
+                .catch((err) => {
+                    console.log(err);
+                    error.classList.remove('hidden');
+                });
+            };
+        });
+
          form.onsubmit = (event) => {
              event.preventDefault();
 
@@ -47,7 +97,7 @@
                      description,
                  }),
                  headers: {
-                     'Content-Type': 'application/json'
+                     'Content-Type': 'application/json',
                  }
              })
              .then((response) => response.json())
