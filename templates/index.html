@@ -43,6 +43,10 @@
             vertical-align: top;
         }
 
+        .todos-wrapper {
+            margin-left: 100px;
+        }
+
         a {
             text-decoration: none;
             color: initial;
@@ -69,6 +73,7 @@
                     <input type="checkbox" class="check-list" data-id="{{ list.id }}">
                     {{list.name}}
                 </a>
+                <button class="delete-list" data-id="{{ list.id}}">&cross;</button>
             </li>
             {% endfor %}
         </ul>
@@ -97,6 +102,7 @@
         const listForm = document.querySelector('#list-form');
         const checkboxes = document.querySelectorAll('.check-completed');
         const deleteButtons = document.querySelectorAll('.delete');
+        const deleteListButtons = document.querySelectorAll('.delete-list');
         
         const updateTodo = (event) => {
             console.log(event);
@@ -121,6 +127,7 @@
             });
         };
 
+        // Delete todo
         const deleteTodo = (event) => {
             todoId = event.target.dataset['id'];
             fetch(`/todos/${todoId}/delete`, {
@@ -136,8 +143,7 @@
             })
             .catch((err) => {
                 console.log(err)
-            })
-            
+            })          
         };
 
          todoForm.onsubmit = (event) => {
@@ -167,11 +173,12 @@
                  checkbox.className = 'check-completed';
                  checkbox.setAttribute('data-id', jsonResponse.id);
                  checkbox.onchange = updateTodo;
-                 li.appendChild(listLink);
+                 li.appendChild(checkbox);
 
                  const todoText = document.createTextNode(` ${jsonResponse.description}`);
-                 li.appendChild(listLink);
-                                const del = document.createElement('button')
+                 li.appendChild(todoText);
+                 
+                 const del = document.createElement('button')
                  del.className = 'delete';
                  del.setAttribute('data-id', jsonResponse.id);
                  del.innerHTML = '&cross;';
@@ -195,7 +202,7 @@
             deleteBtn.onclick = deleteTodo;
         })
 
-        // Todo list handlers
+        // List handlers
 
         listForm.onsubmit = (event) => {
             event.preventDefault();
@@ -225,6 +232,14 @@
                 listLink.setAttribute('href', `/lists/${ jsonResponse.id }`);
                 listLink.textContent = jsonResponse.name;
                 listItem.appendChild(listLink);
+
+                const delList = document.createElement('button')
+                delList.className = 'delete-list';
+                delList.setAttribute('data-id', jsonResponse.id);
+                delList.innerHTML = '&cross;';
+                delList.onclick = deleteList;
+                listItem.appendChild(delList);
+
                 lists.appendChild(listItem);
                 error.classList.add('hidden');
             })
@@ -257,6 +272,29 @@
             })
         }
         });
+
+        const deleteList = (event) => {
+            console.log(event);
+            listId = event.target.dataset['id'];
+            fetch(`/lists/${listId}/delete`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(() => {
+                error.classList.add('hidden');
+                const listItem = event.target.parentElement;
+                listItem.remove();
+            })
+            .catch((err) => {
+                console.log(err)
+            })          
+        };
+
+        deleteListButtons.forEach((deleteBtn) => {
+            deleteBtn.onclick = deleteList;
+        })
         
     </script>
 </body>

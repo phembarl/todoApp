@@ -10,6 +10,12 @@ db = SQLAlchemy(app)
 
 migrate = Migrate(app, db)
 
+class TodoList(db.Model):
+    __tablename__ = 'todolists'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(), nullable=False)
+    todos = db.relationship('Todo', backref='list', cascade='all, delete-orphan', lazy=True)
+
 class Todo(db.Model):
     __tablename__ = 'todos'
     id = db.Column(db.Integer, primary_key=True)
@@ -19,12 +25,6 @@ class Todo(db.Model):
 
     def __repr__(self):
         return f'<Todo {self.id} {self.description}>'
-
-class TodoList(db.Model):
-    __tablename__ = 'todolists'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(), nullable=False)
-    todos = db.relationship('Todo', backref='list', lazy=True)
 
 
 # Todo routes
@@ -125,6 +125,19 @@ def complete_list(list_id):
     finally:
         db.session.close()
     return jsonify(body)
+
+@app.route('/lists/<list_id>/delete', methods=['DELETE'])
+def delete_list(list_id):
+    try:
+        todolist = TodoList.query.filter_by(id=list_id).first()
+        db.session.delete(todolist)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        print(sys.exc_info())
+    finally:
+        db.session.close()
+    return jsonify({ 'success': True })
 
 if '__main__':
     app.run()
